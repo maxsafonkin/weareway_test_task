@@ -1,4 +1,4 @@
-transformers
-datasets
-torch
-accelerate
+transformers~=4.48.0
+datasets~=2.16.0
+torch~=2.5.0
+accelerate~=1.3.0

@@ -1,2 +1,2 @@
-httpx
-datasets
+httpx~=0.27.0
+datasets~=2.16.0
