@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+transformers
+datasets
+torch
+sqlalchemy
+asyncpg
+celery
+redis
+accelerate
+pgvector
+eventlet
+nest_asyncio
+psycopg2-binary
