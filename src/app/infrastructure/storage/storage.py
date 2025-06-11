@@ -14,7 +14,7 @@ from sqlalchemy.orm import sessionmaker
 class ReviewsStorage(interfaces.reviews_storage.ReviewsStorage):
     def __init__(self, db_config: config.ReviewsStorageConfig):
         conn_uri = f"postgresql+asyncpg://{db_config.user}:{db_config.password}@{db_config.host}:{db_config.port}/{db_config.db_name}"
-        engine = create_async_engine(conn_uri, echo=True)
+        engine = create_async_engine(conn_uri)
         self._sessionmaker = sessionmaker(
             engine, class_=AsyncSession, expire_on_commit=False
         )
@@ -24,7 +24,7 @@ class ReviewsStorage(interfaces.reviews_storage.ReviewsStorage):
     def _init_db_sync(self, db_config: config.ReviewsStorageConfig):
         """Initialize database extensions and tables synchronously."""
         sync_uri = f"postgresql://{db_config.user}:{db_config.password}@{db_config.host}:{db_config.port}/{db_config.db_name}"
-        sync_engine = create_engine(sync_uri, echo=True)
+        sync_engine = create_engine(sync_uri)
 
         with sync_engine.begin() as conn:
             try:

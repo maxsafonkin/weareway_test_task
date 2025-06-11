@@ -12,7 +12,7 @@ celery_app: Celery = None
 
 
 @router.post("/add")
-async def add_review(body: models.TextBody):  # todo: return view
+async def add_review(body: models.TextBody):
     error_code, error_message = None, None
     try:
         await reviews_use_cases.add_review(body.text)
@@ -30,17 +30,7 @@ async def find_similar(body: models.TextBody, top_k: int = 5):
     return {"task_id": task.id}
 
 
-# @router.get("/task/{task_id}")
-# async def get_task_status(task_id: str):
-#     task_result = AsyncResult(task_id, app=celery_app)
-#     return {
-#         "task_id": task_id,
-#         "status": task_result.status,
-#         "result": task_result.result if task_result.ready() else None,
-#     }
-
-
-@router.get("/status/{task_id}")  # todo: deprecate this endpoint
+@router.get("/status/{task_id}")
 async def get_status(task_id: str):
     task_result = AsyncResult(task_id, app=celery_app)
     if task_result.ready():

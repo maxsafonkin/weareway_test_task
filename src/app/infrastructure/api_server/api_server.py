@@ -8,7 +8,9 @@ from .fastapi_app import get_app
 class FastAPIServer:
     __SERVER_PORT = 7890
 
-    def __init__(self, reviews_use_cases: usecases.ReviewUseCases, celery_app: Celery) -> None:
+    def __init__(
+        self, reviews_use_cases: usecases.ReviewUseCases, celery_app: Celery
+    ) -> None:
         self._reviews_use_cases = reviews_use_cases
         self._celery_app = celery_app
 
