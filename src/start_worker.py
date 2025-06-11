@@ -1,9 +1,8 @@
 import asyncio
 import os
 
-from celery import Celery
-
 from app import infrastructure, usecases
+from app.infrastructure.celery.celery_app import CeleryApp
 from utils import ServiceConfig
 
 
@@ -21,12 +20,12 @@ reviews_use_cases = usecases.ReviewUseCases(
     embedder=embedder, reviews_storage=reviews_storage
 )
 
-celery_app = Celery(
-    "worker",
-    broker="redis://:password@localhost:6379/0",
-    backend="redis://:password@localhost:6379/0",
+# Initialize Celery app
+CeleryApp.initialize(
+    broker_url=service_config.redis_config.url,
+    backend_url=service_config.redis_config.url,
 )
-
+celery_app = CeleryApp.get_instance()
 celery_app.conf.task_serializer = "json"
 
 

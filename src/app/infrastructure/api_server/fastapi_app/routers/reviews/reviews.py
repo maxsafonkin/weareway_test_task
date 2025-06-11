@@ -8,11 +8,7 @@ from . import models
 router = APIRouter(prefix="/api/v1/reviews")
 
 reviews_use_cases: usecases.ReviewUseCases = None
-celery_app = Celery(
-    "worker",
-    broker="redis://:password@localhost:6379/0",
-    backend="redis://:password@localhost:6379/0",
-)
+celery_app: Celery = None
 
 
 @router.post("/add")
@@ -29,12 +25,22 @@ async def add_review(body: models.TextBody):  # todo: return view
 
 
 @router.post("/find_similar")
-async def find_similar(body: models.TextBody, top_k: int):
+async def find_similar(body: models.TextBody, top_k: int = 5):
     task = celery_app.send_task("process_review", args=[body.text, top_k])
     return {"task_id": task.id}
 
 
-@router.get("/status/{task_id}")  # todo: better endpoint
+# @router.get("/task/{task_id}")
+# async def get_task_status(task_id: str):
+#     task_result = AsyncResult(task_id, app=celery_app)
+#     return {
+#         "task_id": task_id,
+#         "status": task_result.status,
+#         "result": task_result.result if task_result.ready() else None,
+#     }
+
+
+@router.get("/status/{task_id}")  # todo: deprecate this endpoint
 async def get_status(task_id: str):
     task_result = AsyncResult(task_id, app=celery_app)
     if task_result.ready():

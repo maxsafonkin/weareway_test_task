@@ -2,10 +2,10 @@ from app import entities
 from app.usecases import interfaces
 
 from . import config
-from .models import Review
+from .models import Review, Base
 from . import errors
 
-from sqlalchemy import select, create_engine
+from sqlalchemy import select, text, create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
@@ -14,8 +14,31 @@ from sqlalchemy.orm import sessionmaker
 class ReviewsStorage(interfaces.reviews_storage.ReviewsStorage):
     def __init__(self, db_config: config.ReviewsStorageConfig):
         conn_uri = f"postgresql+asyncpg://{db_config.user}:{db_config.password}@{db_config.host}:{db_config.port}/{db_config.db_name}"
-        engine = create_async_engine(conn_uri)
-        self._sessionmaker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+        engine = create_async_engine(conn_uri, echo=True)
+        self._sessionmaker = sessionmaker(
+            engine, class_=AsyncSession, expire_on_commit=False
+        )
+
+        self._init_db_sync(db_config)
+
+    def _init_db_sync(self, db_config: config.ReviewsStorageConfig):
+        """Initialize database extensions and tables synchronously."""
+        sync_uri = f"postgresql://{db_config.user}:{db_config.password}@{db_config.host}:{db_config.port}/{db_config.db_name}"
+        sync_engine = create_engine(sync_uri, echo=True)
+
+        with sync_engine.begin() as conn:
+            try:
+                conn.execute(
+                    text("CREATE EXTENSION IF NOT EXISTS vector SCHEMA public")
+                )
+            except SQLAlchemyError:
+                result = conn.execute(
+                    text("SELECT 1 FROM pg_extension WHERE extname = 'vector'")
+                )
+                if not result.scalar():
+                    raise
+
+            Base.metadata.create_all(bind=conn, checkfirst=True)
 
     async def add_review(self, text: str, embedding: list[float]) -> int:
         review = Review(text=text, embedding=embedding)
