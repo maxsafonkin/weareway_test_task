@@ -1,3 +1,4 @@
+*_data
 db/*/data
 service_config.json
 models/
