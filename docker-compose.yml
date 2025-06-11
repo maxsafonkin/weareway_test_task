@@ -1,0 +1,74 @@
+services:
+  api:
+    build: .
+    command: python src/start_api_server.py
+    ports:
+      - "7890:7890"
+    volumes:
+      - ./models:/app/models
+      - ./service_config.json:/app/service_config.json
+    environment:
+      - SERVICE_CONFIG_PATH=/app/service_config.json
+    depends_on:
+      - postgres
+      - redis
+      - celery_worker
+    networks:
+      - app-network
+
+  celery_worker:
+    build: .
+    command: celery -A src.start_worker.celery_app worker --loglevel=info
+    volumes:
+      - ./models:/app/models
+      - ./service_config.json:/app/service_config.json
+    environment:
+      - SERVICE_CONFIG_PATH=/app/service_config.json
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis_data:/data
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --appendonly yes
+      --bind 0.0.0.0
+    networks:
+      - app-network
+
+  postgres:
+    image: ankane/pgvector:latest
+    container_name: pgvector-db
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data: 

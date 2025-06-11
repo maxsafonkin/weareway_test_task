@@ -1,0 +1,6 @@
+# Exclude everything
+*
+
+# Include only required files and directories
+!requirements/requirements.txt
+!src/
